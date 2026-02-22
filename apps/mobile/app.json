@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "MyFast",
+    "slug": "myfast",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "myfast",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#0D0B0F"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.myfast.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0D0B0F"
+      },
+      "package": "com.myfast.app"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-notifications"
+    ]
+  }
+}
