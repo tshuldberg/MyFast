@@ -1,17 +1,20 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '@myfast/ui';
 
 export default function TabLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#171419',
-          borderTopColor: '#252030',
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
         },
-        tabBarActiveTintColor: '#14B8A6',
-        tabBarInactiveTintColor: '#5E5669',
+        tabBarActiveTintColor: colors.fasting,
+        tabBarInactiveTintColor: colors.idle,
       }}
     >
       <Tabs.Screen

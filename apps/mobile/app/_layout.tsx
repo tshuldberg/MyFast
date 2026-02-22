@@ -1,9 +1,10 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeProvider } from '@myfast/ui';
 
 export default function RootLayout() {
   return (
-    <>
+    <ThemeProvider mode="dark">
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -12,7 +13,8 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" />
       </Stack>
-    </>
+    </ThemeProvider>
   );
 }
