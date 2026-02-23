@@ -2,14 +2,16 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@myfast/ui';
+import { useDatabase } from '@/lib/database';
 import { TimerButton } from '@/components/timer/TimerButton';
 
 export default function DoneScreen() {
   const router = useRouter();
   const { colors, spacing, typography } = useTheme();
+  const db = useDatabase();
 
   const handleFinish = () => {
-    // TODO: persist onboarding-complete flag to settings table
+    db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, ['onboarding_complete', 'true']);
     router.replace('/(tabs)');
   };
 

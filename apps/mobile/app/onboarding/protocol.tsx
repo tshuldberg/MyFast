@@ -3,11 +3,13 @@ import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@myfast/ui';
 import { PRESET_PROTOCOLS } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
 import { TimerButton } from '@/components/timer/TimerButton';
 
 export default function ProtocolScreen() {
   const router = useRouter();
   const { colors, spacing, typography, borderRadius } = useTheme();
+  const db = useDatabase();
   const [selected, setSelected] = useState(PRESET_PROTOCOLS[0].id);
 
   return (
@@ -76,7 +78,10 @@ export default function ProtocolScreen() {
         <TimerButton
           label="Continue"
           color={colors.fasting}
-          onPress={() => router.push('/onboarding/widget')}
+          onPress={() => {
+            db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, ['defaultProtocol', selected]);
+            router.push('/onboarding/widget');
+          }}
         />
       </View>
     </View>

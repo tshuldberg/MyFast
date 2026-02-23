@@ -76,8 +76,18 @@ export function TimerRing({
     opacity: pulseOpacity.value,
   }));
 
+  const percentComplete = Math.round(progress * 100);
+  const stateLabel = state === 'idle' ? 'idle' : state === 'complete' ? 'target reached' : 'fasting';
+  const a11yLabel = `Timer ring, ${percentComplete}% complete, ${stateLabel}`;
+
   return (
-    <View style={[styles.container, { width: size, height: size }]}>
+    <View
+      style={[styles.container, { width: size, height: size }]}
+      accessible
+      accessibilityLabel={a11yLabel}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: 100, now: percentComplete }}
+    >
       <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         {/* Background track */}
         <Circle

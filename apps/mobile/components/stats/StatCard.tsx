@@ -10,6 +10,8 @@ interface StatCardProps {
 export function StatCard({ label, value, unit }: StatCardProps) {
   const { colors, spacing, borderRadius, typography } = useTheme();
 
+  const a11yLabel = unit ? `${label}, ${value} ${unit}` : `${label}, ${value}`;
+
   return (
     <View
       style={[
@@ -20,6 +22,9 @@ export function StatCard({ label, value, unit }: StatCardProps) {
           padding: spacing.md,
         },
       ]}
+      accessible
+      accessibilityLabel={a11yLabel}
+      accessibilityRole="summary"
     >
       <Text style={[styles.value, { color: colors.text, fontSize: typography.stat.fontSize }]}>
         {value}

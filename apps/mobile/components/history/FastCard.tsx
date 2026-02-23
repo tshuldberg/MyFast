@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@myfast/ui';
 import { formatDuration } from '@myfast/shared';
@@ -6,6 +6,7 @@ import type { Fast } from '@myfast/shared';
 
 interface FastCardProps {
   fast: Fast;
+  onDelete?: (id: string) => void;
 }
 
 function formatTime(iso: string): string {
@@ -16,11 +17,24 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-export function FastCard({ fast }: FastCardProps) {
+export function FastCard({ fast, onDelete }: FastCardProps) {
   const { colors, spacing, borderRadius, typography } = useTheme();
 
+  const targetLabel = fast.hitTarget === true ? 'target reached' : fast.hitTarget === false ? 'target missed' : '';
+  const durationLabel = fast.durationSeconds !== null ? formatDuration(fast.durationSeconds) : 'ongoing';
+  const a11yLabel = `${fast.protocol} fast, ${formatDate(fast.startedAt)}, ${durationLabel}${targetLabel ? `, ${targetLabel}` : ''}`;
+
+  const handleLongPress = () => {
+    if (!onDelete) return;
+    Alert.alert('Delete Fast', 'Are you sure you want to delete this fast?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => onDelete(fast.id) },
+    ]);
+  };
+
   return (
-    <View
+    <Pressable
+      onLongPress={handleLongPress}
       style={[
         styles.card,
         {
@@ -30,6 +44,9 @@ export function FastCard({ fast }: FastCardProps) {
           marginBottom: spacing.sm,
         },
       ]}
+      accessible
+      accessibilityLabel={a11yLabel}
+      accessibilityHint="Long press to delete"
     >
       {/* Top row: protocol badge + hit target indicator */}
       <View style={styles.topRow}>
@@ -62,7 +79,7 @@ export function FastCard({ fast }: FastCardProps) {
           {formatDuration(fast.durationSeconds)}
         </Text>
       )}
-    </View>
+    </Pressable>
   );
 }
 

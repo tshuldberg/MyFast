@@ -19,8 +19,17 @@ export function TimerDisplay({ elapsed, state, label }: TimerDisplayProps) {
         ? colors.fasting
         : colors.textTertiary;
 
+  const hours = Math.floor(elapsed / 3600);
+  const minutes = Math.floor((elapsed % 3600) / 60);
+  const seconds = elapsed % 60;
+  const timeParts: string[] = [];
+  if (hours > 0) timeParts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
+  if (minutes > 0) timeParts.push(`${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`);
+  timeParts.push(`${seconds} ${seconds === 1 ? 'second' : 'seconds'}`);
+  const a11yLabel = `${timeParts.join(', ')} elapsed, ${label}`;
+
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessible accessibilityLabel={a11yLabel} accessibilityRole="timer">
       <Text style={[styles.time, { color: timeColor, fontSize: typography.timer.fontSize }]}>
         {formatDuration(elapsed)}
       </Text>

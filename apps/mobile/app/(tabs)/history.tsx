@@ -1,8 +1,11 @@
-import { useState, useCallback } from 'react';
-import { View, Text, SectionList, StyleSheet } from 'react-native';
+import { useState, useCallback, useRef } from 'react';
+import { View, Text, SectionList, StyleSheet, RefreshControl } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@myfast/ui';
 import type { Fast } from '@myfast/shared';
+import { listFasts, countFasts, deleteFast } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
 import { FastCard } from '@/components/history/FastCard';
 
 interface Section {
@@ -26,11 +29,49 @@ function groupByMonth(fasts: Fast[]): Section[] {
   return Array.from(groups.entries()).map(([title, data]) => ({ title, data }));
 }
 
+const PAGE_SIZE = 30;
+
 export default function HistoryScreen() {
   const { colors, spacing, typography } = useTheme();
+  const db = useDatabase();
 
-  // TODO: Replace with actual data from SQLite via listFasts()
-  const [fasts] = useState<Fast[]>([]);
+  const [fasts, setFasts] = useState<Fast[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const hasMoreRef = useRef(true);
+
+  const loadInitial = useCallback(() => {
+    const results = listFasts(db, { limit: PAGE_SIZE, offset: 0 });
+    setFasts(results);
+    hasMoreRef.current = results.length >= PAGE_SIZE;
+  }, [db]);
+
+  // Reload on tab focus
+  useFocusEffect(
+    useCallback(() => {
+      loadInitial();
+    }, [loadInitial]),
+  );
+
+  const handleRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadInitial();
+    setRefreshing(false);
+  }, [loadInitial]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!hasMoreRef.current) return;
+    const next = listFasts(db, { limit: PAGE_SIZE, offset: fasts.length });
+    if (next.length < PAGE_SIZE) hasMoreRef.current = false;
+    if (next.length > 0) setFasts((prev) => [...prev, ...next]);
+  }, [db, fasts.length]);
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      deleteFast(db, id);
+      loadInitial();
+    },
+    [db, loadInitial],
+  );
 
   const sections = groupByMonth(fasts);
 
@@ -56,8 +97,8 @@ export default function HistoryScreen() {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: Fast }) => <FastCard fast={item} />,
-    [],
+    ({ item }: { item: Fast }) => <FastCard fast={item} onDelete={handleDelete} />,
+    [handleDelete],
   );
 
   if (fasts.length === 0) {
@@ -107,6 +148,15 @@ export default function HistoryScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: spacing.xxl }}
         stickySectionHeadersEnabled
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.textTertiary}
+          />
+        }
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
       />
     </View>
   );

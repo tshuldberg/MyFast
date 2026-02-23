@@ -22,8 +22,17 @@ export function WeeklyChart({ data, targetHours }: WeeklyChartProps) {
 
   const targetY = chartInnerHeight - (targetHours / maxHours) * chartInnerHeight;
 
+  const daysWithData = data.filter((d) => d.totalHours > 0);
+  const hitCount = data.filter((d) => d.hitTarget).length;
+  const chartSummary = `Weekly fasting chart. ${daysWithData.length} of ${data.length} days with fasts, ${hitCount} targets hit. Target: ${targetHours} hours.`;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.surface, borderRadius: borderRadius.md, padding: spacing.md }]}>
+    <View
+      style={[styles.container, { backgroundColor: colors.surface, borderRadius: borderRadius.md, padding: spacing.md }]}
+      accessible
+      accessibilityLabel={chartSummary}
+      accessibilityRole="summary"
+    >
       <Text style={[styles.title, { color: colors.textSecondary, fontSize: typography.label.fontSize, letterSpacing: typography.label.letterSpacing }]}>
         THIS WEEK
       </Text>

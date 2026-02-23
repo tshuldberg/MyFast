@@ -1,7 +1,11 @@
+import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@myfast/ui';
 import type { StreakCache, DaySummary } from '@myfast/shared';
+import { getStreaks, averageDuration, weeklyRollup } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
 import { StatCard } from '@/components/stats/StatCard';
 import { WeeklyChart } from '@/components/stats/WeeklyChart';
 
@@ -15,15 +19,20 @@ function formatHours(seconds: number): string {
 
 export default function StatsScreen() {
   const { colors, spacing, typography } = useTheme();
+  const db = useDatabase();
 
-  // TODO: Replace with actual data from SQLite
-  const streaks: StreakCache = {
-    currentStreak: 0,
-    longestStreak: 0,
-    totalFasts: 0,
-  };
-  const avgDuration = 0;
-  const weeklyData: DaySummary[] = [];
+  const [streaks, setStreaks] = useState<StreakCache>({ currentStreak: 0, longestStreak: 0, totalFasts: 0 });
+  const [avgDur, setAvgDur] = useState(0);
+  const [weeklyData, setWeeklyData] = useState<DaySummary[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setStreaks(getStreaks(db));
+      setAvgDur(averageDuration(db));
+      setWeeklyData(weeklyRollup(db));
+    }, [db]),
+  );
+
   const hasData = streaks.totalFasts > 0;
 
   if (!hasData) {
@@ -77,7 +86,7 @@ export default function StatsScreen() {
       </View>
       <View style={[styles.statRow, { paddingHorizontal: spacing.md, gap: spacing.sm, marginTop: spacing.sm }]}>
         <StatCard label="Total Fasts" value={String(streaks.totalFasts)} />
-        <StatCard label="Avg Duration" value={formatHours(avgDuration)} />
+        <StatCard label="Avg Duration" value={formatHours(avgDur)} />
       </View>
 
       {/* Weekly chart */}

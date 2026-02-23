@@ -1,32 +1,48 @@
-import { useState, useCallback } from 'react';
-import { View, Text, ScrollView, Switch, Pressable, Alert, StyleSheet } from 'react-native';
+import { useState, useCallback, useEffect } from 'react';
+import { View, Text, ScrollView, Switch, Pressable, Alert, Share, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@myfast/ui';
-import { PRESET_PROTOCOLS } from '@myfast/shared';
-import type { Settings } from '@myfast/shared';
+import { PRESET_PROTOCOLS, exportFastsCSV, exportWeightCSV, initDatabase } from '@myfast/shared';
+import type { Settings, Database } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
+
+function loadSettings(db: Database): Settings {
+  const get = (key: string, fallback: string): string => {
+    const row = db.get<{ value: string }>(`SELECT value FROM settings WHERE key = ?`, [key]);
+    return row?.value ?? fallback;
+  };
+  return {
+    defaultProtocol: get('defaultProtocol', '16:8'),
+    notifyFastComplete: get('notifyFastComplete', 'false') === 'true',
+    notifyEatingWindowClosing: get('notifyEatingWindowClosing', 'false') === 'true',
+    weightTrackingEnabled: get('weightTrackingEnabled', 'false') === 'true',
+    weightUnit: get('weightUnit', 'lbs') as 'lbs' | 'kg',
+    theme: get('theme', 'dark') as 'dark' | 'light',
+  };
+}
+
+function persistSetting(db: Database, key: string, value: string): void {
+  db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [key, value]);
+}
 
 export default function SettingsScreen() {
   const { colors, spacing, typography, borderRadius } = useTheme();
+  const db = useDatabase();
 
-  // TODO: Load from SQLite settings table
-  const [settings, setSettings] = useState<Settings>({
-    defaultProtocol: '16:8',
-    notifyFastComplete: false,
-    notifyEatingWindowClosing: false,
-    weightTrackingEnabled: false,
-    weightUnit: 'lbs',
-    theme: 'dark',
-  });
+  const [settings, setSettings] = useState<Settings>(() => loadSettings(db));
 
   const updateSetting = useCallback(<K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
-    // TODO: Persist to settings table
-  }, []);
+    const strValue = typeof value === 'boolean' ? String(value) : String(value);
+    persistSetting(db, key, strValue);
+  }, [db]);
 
   const handleExport = useCallback(() => {
-    // TODO: Generate CSV and open share sheet
-    Alert.alert('Export', 'CSV export will be available when database wiring is complete.');
-  }, []);
+    const fastsCSV = exportFastsCSV(db);
+    const weightCSV = exportWeightCSV(db);
+    const combined = `=== Fasts ===\n${fastsCSV}\n=== Weight Entries ===\n${weightCSV}`;
+    Share.share({ message: combined, title: 'MyFast Export' });
+  }, [db]);
 
   const handleEraseData = useCallback(() => {
     Alert.alert(
@@ -38,12 +54,19 @@ export default function SettingsScreen() {
           text: 'Erase Everything',
           style: 'destructive',
           onPress: () => {
-            // TODO: Clear all tables and reset
+            db.run(`DELETE FROM fasts`);
+            db.run(`DELETE FROM active_fast`);
+            db.run(`DELETE FROM weight_entries`);
+            db.run(`DELETE FROM streak_cache`);
+            db.run(`DELETE FROM settings`);
+            // Re-seed defaults
+            initDatabase(db);
+            setSettings(loadSettings(db));
           },
         },
       ],
     );
-  }, []);
+  }, [db]);
 
   return (
     <ScrollView
@@ -84,6 +107,9 @@ export default function SettingsScreen() {
                 },
               ]}
               onPress={() => updateSetting('defaultProtocol', protocol.id)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
+              accessibilityLabel={`${protocol.id}, ${protocol.name}`}
             >
               <View style={styles.protocolRowInner}>
                 <Text style={[styles.protocolId, { color: colors.fasting, fontSize: typography.body.fontSize }]}>
@@ -160,6 +186,8 @@ export default function SettingsScreen() {
         <Pressable
           style={[styles.actionRow, { backgroundColor: colors.surface, borderRadius: borderRadius.md, padding: spacing.md, marginBottom: spacing.xs }]}
           onPress={handleExport}
+          accessibilityRole="button"
+          accessibilityLabel="Export as CSV"
         >
           <Ionicons name="download-outline" size={20} color={colors.text} />
           <Text style={[styles.actionLabel, { color: colors.text, fontSize: typography.body.fontSize }]}>
@@ -169,6 +197,9 @@ export default function SettingsScreen() {
         <Pressable
           style={[styles.actionRow, { backgroundColor: colors.surface, borderRadius: borderRadius.md, padding: spacing.md }]}
           onPress={handleEraseData}
+          accessibilityRole="button"
+          accessibilityLabel="Erase all data"
+          accessibilityHint="Double tap to erase all data"
         >
           <Ionicons name="trash-outline" size={20} color={colors.danger} />
           <Text style={[styles.actionLabel, { color: colors.danger, fontSize: typography.body.fontSize }]}>
@@ -276,6 +307,9 @@ function UnitButton({ label, selected, onPress, colors, borderRadius }: UnitButt
         },
       ]}
       onPress={onPress}
+      accessibilityRole="radio"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
     >
       <Text style={{ color: selected ? '#FFFFFF' : colors.textSecondary, fontWeight: '600', fontFamily: 'Inter' }}>
         {label}

@@ -1,9 +1,20 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, AccessibilityInfo, Platform } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useTheme } from '@myfast/ui';
 import type { RingState } from '@myfast/ui';
-import { computeTimerState, formatDuration, PRESET_PROTOCOLS } from '@myfast/shared';
+import {
+  computeTimerState,
+  formatDuration,
+  PRESET_PROTOCOLS,
+  getActiveFast,
+  startFast,
+  endFast,
+  getStreaks,
+  refreshStreakCache,
+} from '@myfast/shared';
 import type { ActiveFast, TimerState } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
 import { TimerRing } from '@/components/timer/TimerRing';
 import { TimerDisplay } from '@/components/timer/TimerDisplay';
 import { TimerButton } from '@/components/timer/TimerButton';
@@ -23,14 +34,25 @@ function formatEndTime(startedAt: string, targetHours: number): string {
 
 export default function TimerScreen() {
   const { colors, spacing, typography, borderRadius } = useTheme();
+  const db = useDatabase();
 
-  // In-memory active fast state — will be backed by SQLite once DB wiring is added
   const [activeFast, setActiveFast] = useState<ActiveFast | null>(null);
   const [timer, setTimer] = useState<TimerState>(() => computeTimerState(null, new Date()));
+  const [streakCount, setStreakCount] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Default protocol
   const defaultProtocol = PRESET_PROTOCOLS.find((p) => p.isDefault) ?? PRESET_PROTOCOLS[0];
+
+  // Restore active fast from DB on mount and tab focus
+  useFocusEffect(
+    useCallback(() => {
+      const active = getActiveFast(db);
+      setActiveFast(active);
+      const streaks = getStreaks(db);
+      setStreakCount(streaks.currentStreak);
+    }, [db]),
+  );
 
   // Update timer state every second when fasting
   useEffect(() => {
@@ -47,22 +69,39 @@ export default function TimerScreen() {
   }, [activeFast]);
 
   const handleStart = useCallback(() => {
-    const now = new Date().toISOString();
-    const fast: ActiveFast = {
+    const fast = startFast(db, defaultProtocol.id, defaultProtocol.fastingHours);
+    setActiveFast({
       id: 'current',
-      fastId: `fast-${Date.now()}`,
-      protocol: defaultProtocol.id,
-      targetHours: defaultProtocol.fastingHours,
-      startedAt: now,
-    };
-    setActiveFast(fast);
-  }, [defaultProtocol]);
+      fastId: fast.id,
+      protocol: fast.protocol,
+      targetHours: fast.targetHours,
+      startedAt: fast.startedAt,
+    });
+  }, [db, defaultProtocol]);
 
   const handleEnd = useCallback(() => {
+    endFast(db);
+    refreshStreakCache(db);
+    const streaks = getStreaks(db);
+    setStreakCount(streaks.currentStreak);
     setActiveFast(null);
-  }, []);
+  }, [db]);
 
   const ringState = getRingState(timer);
+
+  // Announce state transitions for screen readers
+  const prevStateRef = useRef<'idle' | 'fasting' | 'complete'>('idle');
+  useEffect(() => {
+    const currentState = timer.state === 'idle' ? 'idle' : timer.targetReached ? 'complete' : 'fasting';
+    if (currentState !== prevStateRef.current) {
+      prevStateRef.current = currentState;
+      if (currentState === 'fasting') {
+        AccessibilityInfo.announceForAccessibility('Fasting started');
+      } else if (currentState === 'complete') {
+        AccessibilityInfo.announceForAccessibility('Target reached! You can end your fast now.');
+      }
+    }
+  }, [timer.state, timer.targetReached]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -86,7 +125,10 @@ export default function TimerScreen() {
       </View>
 
       {/* Info section */}
-      <View style={[styles.infoSection, { marginTop: spacing.lg }]}>
+      <View
+        style={[styles.infoSection, { marginTop: spacing.lg }]}
+        {...(Platform.OS === 'android' ? { accessibilityLiveRegion: 'polite' as const } : {})}
+      >
         {timer.state === 'idle' ? (
           <>
             <InfoRow
@@ -97,7 +139,7 @@ export default function TimerScreen() {
             />
             <InfoRow
               label="Streak"
-              value="--"
+              value={streakCount > 0 ? `${streakCount} day${streakCount !== 1 ? 's' : ''}` : '--'}
               colors={colors}
               typography={typography}
             />
@@ -161,7 +203,11 @@ export default function TimerScreen() {
 
       {/* Change protocol link (idle only) */}
       {timer.state === 'idle' && (
-        <Pressable style={[styles.changeProtocol, { marginTop: spacing.md }]}>
+        <Pressable
+          style={[styles.changeProtocol, { marginTop: spacing.md }]}
+          accessibilityRole="button"
+          accessibilityLabel="Change protocol"
+        >
           <Text
             style={[
               styles.changeProtocolText,
