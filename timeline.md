@@ -79,3 +79,57 @@ Wired all UI screens to real SQLite storage, added accessibility support, and cr
 - `pnpm build`: all 4 packages pass
 - `pnpm test`: 111 tests passing (306ms)
 - Pushed to origin/main
+
+## 2026-02-22 — Phase 3: iOS Widget, Theme Toggle, Charts, Web SQLite
+
+### What
+Spawned 2-agent team (widget-dev, finisher) to build the iOS widget extension, add light theme support, new chart components, and wire the web app to persistent SQLite via sql.js. All 5 tasks completed.
+
+### widget-dev (iOS widget)
+- SwiftUI WidgetKit extension: 5 files in `widgets/ios/` (FastState model, Widget bundle, Widget definition with TimelineProvider, EntryView with ring + elapsed + protocol + streak, App Group entitlements)
+- Small widget: circular ring + elapsed time + protocol + progress percentage
+- Medium widget: ring + elapsed + target + end time + streak count
+- Auto-updating elapsed time via `Text(startDate, style: .timer)`
+- Expo config plugin (`plugins/widget-plugin.js`): adds widget target to Xcode project, configures App Group entitlement
+- Widget bridge (`lib/widget-bridge.ts`): writes fast state JSON to App Group UserDefaults, triggers WidgetKit timeline reload
+- Timer screen updated to call updateWidgetState/clearWidgetState on start/end
+
+### finisher (theme, charts, web DB)
+- Light theme toggle: root layout reads 'theme' setting from DB, passes to ThemeProvider, StatusBar adapts; Settings screen has Dark/Light toggle
+- Default protocol from settings: Timer screen reads 'defaultProtocol' from DB on focus instead of hardcoding
+- MonthlyHeatmap component: calendar grid with day cells colored by fasting status (hit/miss/none), month navigation
+- DurationTrend component: SVG line chart with 7-day moving average dashed line
+- Stats screen wired with heatmap + trend chart below WeeklyChart
+- Web sql.js integration: DatabaseProvider with sql.js adapter, localStorage persistence (base64-encoded), webpack Node.js polyfill fallbacks
+- Web Timer page: fully wired to DB (getActiveFast, startFast, endFast, refreshStreakCache, reads default protocol from settings)
+- Web History page: wired to DB (listFasts with 200 limit)
+- Web Stats page: wired to DB (getStreaks, averageDuration)
+- Web Settings page: wired to DB (loadSettings, persistSetting, exportFastsCSV/exportWeightCSV as download, erase-all-data with re-seed)
+
+### Files Created
+- `apps/mobile/widgets/ios/`: FastState.swift, MyFastWidgetBundle.swift, MyFastWidget.swift, MyFastWidgetEntryView.swift, MyFastWidget.entitlements
+- `apps/mobile/plugins/widget-plugin.js`: Expo config plugin for WidgetKit
+- `apps/mobile/lib/widget-bridge.ts`: App Group UserDefaults bridge
+- `apps/mobile/components/stats/MonthlyHeatmap.tsx`: Calendar heatmap chart
+- `apps/mobile/components/stats/DurationTrend.tsx`: Line chart with moving average
+- `apps/web/lib/database.tsx`: sql.js adapter + DatabaseProvider + useDatabase hook
+- `apps/web/app/providers.tsx`: Client-side provider wrapper
+
+### Files Modified
+- `apps/mobile/app.json`: widget plugin registration
+- `apps/mobile/app/_layout.tsx`: theme setting from DB, dynamic ThemeProvider mode
+- `apps/mobile/app/(tabs)/index.tsx`: widget bridge calls, protocol from settings
+- `apps/mobile/app/(tabs)/settings.tsx`: dark/light theme toggle
+- `apps/mobile/app/(tabs)/stats.tsx`: heatmap + trend chart integration
+- `apps/web/next.config.ts`: webpack fallbacks for sql.js
+- `apps/web/app/layout.tsx`: Providers wrapper
+- `apps/web/app/page.tsx`: wired to sql.js DB
+- `apps/web/app/history/page.tsx`: wired to sql.js DB
+- `apps/web/app/stats/page.tsx`: wired to sql.js DB
+- `apps/web/app/settings/page.tsx`: wired to sql.js DB with CSV export + erase
+- `.gitignore`: exception for widgets/ios/ source files
+
+### Build Status
+- `pnpm build`: all 4 packages pass
+- `pnpm test`: 111 tests passing
+- Pushed to origin/main

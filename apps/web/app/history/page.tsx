@@ -2,7 +2,8 @@
 
 import { colors, spacing, typography } from '@myfast/ui';
 import type { Fast } from '@myfast/shared';
-import { formatDuration } from '@myfast/shared';
+import { formatDuration, listFasts } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -28,8 +29,8 @@ function groupByMonth(fasts: Fast[]): Map<string, Fast[]> {
 }
 
 export default function HistoryPage() {
-  // TODO: Replace with actual data from DB
-  const fasts: Fast[] = [];
+  const db = useDatabase();
+  const fasts: Fast[] = listFasts(db, { limit: 200 });
 
   if (fasts.length === 0) {
     return (

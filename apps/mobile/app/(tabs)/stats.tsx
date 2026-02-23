@@ -3,11 +3,13 @@ import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@myfast/ui';
-import type { StreakCache, DaySummary } from '@myfast/shared';
-import { getStreaks, averageDuration, weeklyRollup } from '@myfast/shared';
+import type { StreakCache, DaySummary, MonthDay, DurationPoint } from '@myfast/shared';
+import { getStreaks, averageDuration, weeklyRollup, monthlyRollup, durationTrend } from '@myfast/shared';
 import { useDatabase } from '@/lib/database';
 import { StatCard } from '@/components/stats/StatCard';
 import { WeeklyChart } from '@/components/stats/WeeklyChart';
+import { MonthlyHeatmap } from '@/components/stats/MonthlyHeatmap';
+import { DurationTrend } from '@/components/stats/DurationTrend';
 
 /** Format seconds to "Xh" or "X.Xh" */
 function formatHours(seconds: number): string {
@@ -24,14 +26,27 @@ export default function StatsScreen() {
   const [streaks, setStreaks] = useState<StreakCache>({ currentStreak: 0, longestStreak: 0, totalFasts: 0 });
   const [avgDur, setAvgDur] = useState(0);
   const [weeklyData, setWeeklyData] = useState<DaySummary[]>([]);
+  const now = new Date();
+  const [heatmapYear, setHeatmapYear] = useState(now.getFullYear());
+  const [heatmapMonth, setHeatmapMonth] = useState(now.getMonth() + 1);
+  const [monthlyData, setMonthlyData] = useState<MonthDay[]>([]);
+  const [trendData, setTrendData] = useState<DurationPoint[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       setStreaks(getStreaks(db));
       setAvgDur(averageDuration(db));
       setWeeklyData(weeklyRollup(db));
-    }, [db]),
+      setMonthlyData(monthlyRollup(db, heatmapYear, heatmapMonth));
+      setTrendData(durationTrend(db, 30));
+    }, [db, heatmapYear, heatmapMonth]),
   );
+
+  const handleChangeMonth = useCallback((year: number, month: number) => {
+    setHeatmapYear(year);
+    setHeatmapMonth(month);
+    setMonthlyData(monthlyRollup(db, year, month));
+  }, [db]);
 
   const hasData = streaks.totalFasts > 0;
 
@@ -93,6 +108,23 @@ export default function StatsScreen() {
       {weeklyData.length > 0 && (
         <View style={{ paddingHorizontal: spacing.md, marginTop: spacing.lg }}>
           <WeeklyChart data={weeklyData} targetHours={16} />
+        </View>
+      )}
+
+      {/* Monthly heatmap */}
+      <View style={{ paddingHorizontal: spacing.md, marginTop: spacing.lg }}>
+        <MonthlyHeatmap
+          data={monthlyData}
+          year={heatmapYear}
+          month={heatmapMonth}
+          onChangeMonth={handleChangeMonth}
+        />
+      </View>
+
+      {/* Duration trend */}
+      {trendData.some((d) => d.durationHours > 0) && (
+        <View style={{ paddingHorizontal: spacing.md, marginTop: spacing.lg }}>
+          <DurationTrend data={trendData} />
         </View>
       )}
     </ScrollView>

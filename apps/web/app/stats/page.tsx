@@ -2,6 +2,8 @@
 
 import { colors, spacing, typography, borderRadius } from '@myfast/ui';
 import type { StreakCache } from '@myfast/shared';
+import { getStreaks, averageDuration } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
 
 function formatHours(seconds: number): string {
   const hours = seconds / 3600;
@@ -11,13 +13,9 @@ function formatHours(seconds: number): string {
 }
 
 export default function StatsPage() {
-  // TODO: Replace with actual data from DB
-  const streaks: StreakCache = {
-    currentStreak: 0,
-    longestStreak: 0,
-    totalFasts: 0,
-  };
-  const avgDuration = 0;
+  const db = useDatabase();
+  const streaks: StreakCache = getStreaks(db);
+  const avgDuration = averageDuration(db);
   const hasData = streaks.totalFasts > 0;
 
   if (!hasData) {

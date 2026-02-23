@@ -25,9 +25,10 @@ Thumbs.db
 # Turbo
 .turbo/
 
-# Expo
+# Expo (generated native projects)
 android/
 ios/
+!**/widgets/ios/
 *.jks
 *.p8
 *.p12

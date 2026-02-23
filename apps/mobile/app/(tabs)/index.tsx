@@ -15,6 +15,7 @@ import {
 } from '@myfast/shared';
 import type { ActiveFast, TimerState } from '@myfast/shared';
 import { useDatabase } from '@/lib/database';
+import { updateWidgetState, clearWidgetState } from '@/lib/widget-bridge';
 import { TimerRing } from '@/components/timer/TimerRing';
 import { TimerDisplay } from '@/components/timer/TimerDisplay';
 import { TimerButton } from '@/components/timer/TimerButton';
@@ -39,18 +40,24 @@ export default function TimerScreen() {
   const [activeFast, setActiveFast] = useState<ActiveFast | null>(null);
   const [timer, setTimer] = useState<TimerState>(() => computeTimerState(null, new Date()));
   const [streakCount, setStreakCount] = useState(0);
+  const [defaultProtocol, setDefaultProtocol] = useState(
+    () => PRESET_PROTOCOLS.find((p) => p.isDefault) ?? PRESET_PROTOCOLS[0],
+  );
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Default protocol
-  const defaultProtocol = PRESET_PROTOCOLS.find((p) => p.isDefault) ?? PRESET_PROTOCOLS[0];
-
-  // Restore active fast from DB on mount and tab focus
+  // Restore active fast from DB on mount and tab focus, and read default protocol
   useFocusEffect(
     useCallback(() => {
       const active = getActiveFast(db);
       setActiveFast(active);
       const streaks = getStreaks(db);
       setStreakCount(streaks.currentStreak);
+
+      const row = db.get<{ value: string }>(`SELECT value FROM settings WHERE key = ?`, ['defaultProtocol']);
+      if (row?.value) {
+        const found = PRESET_PROTOCOLS.find((p) => p.id === row.value);
+        if (found) setDefaultProtocol(found);
+      }
     }, [db]),
   );
 
@@ -77,7 +84,14 @@ export default function TimerScreen() {
       targetHours: fast.targetHours,
       startedAt: fast.startedAt,
     });
-  }, [db, defaultProtocol]);
+    updateWidgetState({
+      state: 'fasting',
+      startedAt: fast.startedAt,
+      targetHours: fast.targetHours,
+      protocol: fast.protocol,
+      streakCount,
+    });
+  }, [db, defaultProtocol, streakCount]);
 
   const handleEnd = useCallback(() => {
     endFast(db);
@@ -85,6 +99,7 @@ export default function TimerScreen() {
     const streaks = getStreaks(db);
     setStreakCount(streaks.currentStreak);
     setActiveFast(null);
+    clearWidgetState(streaks.currentStreak);
   }, [db]);
 
   const ringState = getRingState(timer);

@@ -5,6 +5,7 @@ import { useTheme } from '@myfast/ui';
 import { PRESET_PROTOCOLS, exportFastsCSV, exportWeightCSV, initDatabase } from '@myfast/shared';
 import type { Settings, Database } from '@myfast/shared';
 import { useDatabase } from '@/lib/database';
+import { useThemeMode } from '@/app/_layout';
 
 function loadSettings(db: Database): Settings {
   const get = (key: string, fallback: string): string => {
@@ -28,6 +29,7 @@ function persistSetting(db: Database, key: string, value: string): void {
 export default function SettingsScreen() {
   const { colors, spacing, typography, borderRadius } = useTheme();
   const db = useDatabase();
+  const { themeMode, setThemeMode } = useThemeMode();
 
   const [settings, setSettings] = useState<Settings>(() => loadSettings(db));
 
@@ -178,6 +180,27 @@ export default function SettingsScreen() {
             />
           </View>
         )}
+      </View>
+
+      {/* Appearance */}
+      <SectionTitle title="Appearance" colors={colors} typography={typography} spacing={spacing} />
+      <View style={{ paddingHorizontal: spacing.md }}>
+        <View style={[styles.unitRow]}>
+          <UnitButton
+            label="Dark"
+            selected={themeMode === 'dark'}
+            onPress={() => setThemeMode('dark')}
+            colors={colors}
+            borderRadius={borderRadius}
+          />
+          <UnitButton
+            label="Light"
+            selected={themeMode === 'light'}
+            onPress={() => setThemeMode('light')}
+            colors={colors}
+            borderRadius={borderRadius}
+          />
+        </View>
       </View>
 
       {/* Data */}

@@ -3,9 +3,19 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { colors, spacing, typography } from '@myfast/ui';
 import type { RingState } from '@myfast/ui';
-import { computeTimerState, formatDuration, PRESET_PROTOCOLS } from '@myfast/shared';
+import {
+  computeTimerState,
+  formatDuration,
+  PRESET_PROTOCOLS,
+  getActiveFast,
+  startFast,
+  endFast,
+  getStreaks,
+  refreshStreakCache,
+} from '@myfast/shared';
 import type { ActiveFast, TimerState } from '@myfast/shared';
 import { TimerRing } from '@/components/TimerRing';
+import { useDatabase } from '@/lib/database';
 
 function getRingState(timer: TimerState): RingState {
   if (timer.state === 'idle') return 'idle';
@@ -19,11 +29,17 @@ function formatEndTime(startedAt: string, targetHours: number): string {
 }
 
 export default function TimerPage() {
-  const [activeFast, setActiveFast] = useState<ActiveFast | null>(null);
+  const db = useDatabase();
+  const [activeFast, setActiveFast] = useState<ActiveFast | null>(() => getActiveFast(db));
   const [timer, setTimer] = useState<TimerState>(() => computeTimerState(null, new Date()));
+  const [streakCount, setStreakCount] = useState(() => getStreaks(db).currentStreak);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const defaultProtocol = PRESET_PROTOCOLS.find((p) => p.isDefault) ?? PRESET_PROTOCOLS[0];
+  const [defaultProtocol] = useState(() => {
+    const row = db.get<{ value: string }>(`SELECT value FROM settings WHERE key = ?`, ['defaultProtocol']);
+    const found = row?.value ? PRESET_PROTOCOLS.find((p) => p.id === row.value) : null;
+    return found ?? PRESET_PROTOCOLS.find((p) => p.isDefault) ?? PRESET_PROTOCOLS[0];
+  });
 
   useEffect(() => {
     if (activeFast) {
@@ -39,19 +55,22 @@ export default function TimerPage() {
   }, [activeFast]);
 
   const handleStart = useCallback(() => {
-    const now = new Date().toISOString();
+    const fast = startFast(db, defaultProtocol.id, defaultProtocol.fastingHours);
     setActiveFast({
       id: 'current',
-      fastId: `fast-${Date.now()}`,
-      protocol: defaultProtocol.id,
-      targetHours: defaultProtocol.fastingHours,
-      startedAt: now,
+      fastId: fast.id,
+      protocol: fast.protocol,
+      targetHours: fast.targetHours,
+      startedAt: fast.startedAt,
     });
-  }, [defaultProtocol]);
+  }, [db, defaultProtocol]);
 
   const handleEnd = useCallback(() => {
+    endFast(db);
+    refreshStreakCache(db);
+    setStreakCount(getStreaks(db).currentStreak);
     setActiveFast(null);
-  }, []);
+  }, [db]);
 
   const ringState = getRingState(timer);
 
@@ -91,7 +110,7 @@ export default function TimerPage() {
         {timer.state === 'idle' ? (
           <>
             <InfoRow label="Protocol" value={defaultProtocol.id} />
-            <InfoRow label="Streak" value="--" />
+            <InfoRow label="Streak" value={streakCount > 0 ? `${streakCount} day${streakCount !== 1 ? 's' : ''}` : '--'} />
           </>
         ) : timer.targetReached ? (
           <>

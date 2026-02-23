@@ -2,22 +2,39 @@
 
 import { useState, useCallback } from 'react';
 import { colors, spacing, typography, borderRadius } from '@myfast/ui';
-import { PRESET_PROTOCOLS } from '@myfast/shared';
-import type { Settings } from '@myfast/shared';
+import { PRESET_PROTOCOLS, initDatabase, exportFastsCSV, exportWeightCSV } from '@myfast/shared';
+import type { Settings, Database } from '@myfast/shared';
+import { useDatabase } from '@/lib/database';
+
+function loadSettings(db: Database): Settings {
+  const get = (key: string, fallback: string): string => {
+    const row = db.get<{ value: string }>(`SELECT value FROM settings WHERE key = ?`, [key]);
+    return row?.value ?? fallback;
+  };
+  return {
+    defaultProtocol: get('defaultProtocol', '16:8'),
+    notifyFastComplete: get('notifyFastComplete', 'false') === 'true',
+    notifyEatingWindowClosing: get('notifyEatingWindowClosing', 'false') === 'true',
+    weightTrackingEnabled: get('weightTrackingEnabled', 'false') === 'true',
+    weightUnit: get('weightUnit', 'lbs') as 'lbs' | 'kg',
+    theme: get('theme', 'dark') as 'dark' | 'light',
+  };
+}
+
+function persistSetting(db: Database, key: string, value: string): void {
+  db.run(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [key, value]);
+}
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>({
-    defaultProtocol: '16:8',
-    notifyFastComplete: false,
-    notifyEatingWindowClosing: false,
-    weightTrackingEnabled: false,
-    weightUnit: 'lbs',
-    theme: 'dark',
-  });
+  const db = useDatabase();
+
+  const [settings, setSettings] = useState<Settings>(() => loadSettings(db));
 
   const updateSetting = useCallback(<K extends keyof Settings>(key: K, value: Settings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
-  }, []);
+    const strValue = typeof value === 'boolean' ? String(value) : String(value);
+    persistSetting(db, key, strValue);
+  }, [db]);
 
   return (
     <main style={styles.container}>
@@ -90,12 +107,29 @@ export default function SettingsPage() {
 
       {/* Data */}
       <SectionTitle>Data</SectionTitle>
-      <button style={styles.actionButton} onClick={() => alert('CSV export coming soon')}>
+      <button style={styles.actionButton} onClick={() => {
+        const fastsCSV = exportFastsCSV(db);
+        const weightCSV = exportWeightCSV(db);
+        const combined = `=== Fasts ===\n${fastsCSV}\n=== Weight Entries ===\n${weightCSV}`;
+        const blob = new Blob([combined], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'myfast-export.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      }}>
         Export as CSV
       </button>
       <button style={{ ...styles.actionButton, color: colors.danger, marginTop: spacing.xs }} onClick={() => {
         if (confirm('Erase all data? This cannot be undone.')) {
-          // TODO: Clear all tables
+          db.run('DELETE FROM fasts');
+          db.run('DELETE FROM active_fast');
+          db.run('DELETE FROM weight_entries');
+          db.run('DELETE FROM streak_cache');
+          db.run('DELETE FROM settings');
+          initDatabase(db);
+          setSettings(loadSettings(db));
         }
       }}>
         Erase all data

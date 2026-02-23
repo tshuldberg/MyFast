@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Providers } from './providers';
 
 export const metadata: Metadata = {
   title: 'MyFast — Intermittent Fasting Timer',
@@ -16,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }):
           margin: 0,
         }}
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
