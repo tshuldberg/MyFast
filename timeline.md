@@ -54,3 +54,28 @@ Spawned 3-agent team (core-dev, ui-dev, tester) to build the full MVP in paralle
 - `pnpm build`: all 4 packages pass
 - `pnpm test`: 111 tests passing (373ms)
 - Pushed to origin/main
+
+## 2026-02-22 — Phase 2: SQLite Wiring, Accessibility, Metadata
+
+### What
+Wired all UI screens to real SQLite storage, added accessibility support, and created app store metadata. App now persists fasts across app kills.
+
+### wiring-dev (database integration)
+- expo-sqlite adapter implementing Database interface (runSync/getFirstSync/getAllSync/withTransactionSync → run/get/all/transaction)
+- DatabaseProvider context + useDatabase() hook, wired into root layout
+- Timer screen: restores active fast from DB on mount, startFast/endFast via DB, refreshes streak cache, shows real streak count
+- History screen: listFasts with pagination (30 per page), pull-to-refresh, long-press delete with confirmation dialog
+- Stats screen: real data from getStreaks, averageDuration, weeklyRollup
+- Settings screen: loads/persists all settings to DB, CSV export via Share.share(), erase-all-data with re-seed
+- Onboarding: saves protocol selection + completion flag to settings table, root layout NavigationGuard redirects based on status
+
+### polish-dev (accessibility + metadata)
+- Full VoiceOver/TalkBack support: progressbar role on timer ring, timer role on display, state change announcements, summary roles on stat cards and charts, radio roles on selectors
+- LICENSE: FSL-1.1-Apache-2.0
+- PRIVACY.md: zero-data collection privacy policy
+- APPSTORE.md: full App Store listing with description, keywords, screenshot guide
+
+### Build Status
+- `pnpm build`: all 4 packages pass
+- `pnpm test`: 111 tests passing (306ms)
+- Pushed to origin/main
