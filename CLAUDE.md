@@ -17,6 +17,20 @@ MyFast is a privacy-first intermittent fasting timer app. $4.99 one-time purchas
 - **Testing:** Vitest
 - **License:** FSL-1.1-Apache-2.0
 
+## TypeScript Requirement
+
+- TypeScript-first across all apps and packages in this project.
+- New runtime code should be .ts/.tsx with strict typing and no implicit any.
+- Use .js/.cjs only where required by tooling or platform constraints.
+
+## Agent Instructions and Tooling
+
+- Persistent agent instructions are stored in both AGENTS.md and CLAUDE.md. Keep them in sync when rules change.
+- Global Codex skills are sourced from /Users/trey/.codex/skills (67 skills verified on 2026-02-24).
+- In-repo skill snapshot is tracked in .claude/skills-available.md.
+- Plugin/MCP availability and re-verification steps are tracked in .claude/plugins.md.
+- Local execution allow-list settings live in .claude/settings.local.json.
+
 ## Key Commands
 
 ```bash
@@ -90,6 +104,18 @@ MyFast/
 - **Linter:** ESLint with TypeScript plugin
 - **Font:** Inter everywhere. Timer display: 56px bold.
 - **Colors:** Dark theme — teal (#14B8A6) fasting, coral (#E8725C) eating, green (#22C55E) target reached
+
+## Context7 — Live Documentation
+
+When writing or modifying code that uses external libraries, automatically use Context7 MCP tools (`resolve-library-id` → `query-docs`) to fetch current documentation instead of relying on training data.
+
+**Pre-resolved library IDs for this project:**
+- Expo: `/expo/expo`
+- Next.js: `/vercel/next.js`
+- Vitest: `/vitest-dev/vitest`
+
+Use when: implementing library APIs, upgrading dependencies, debugging API behavior, writing framework configuration.
+Skip when: pure business logic, editing docs/config with no framework dependency.
 
 ## Parallel Agent Work — File Ownership Zones
 
