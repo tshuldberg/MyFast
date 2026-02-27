@@ -35,3 +35,20 @@ Project-specific agent instructions for `/Users/trey/Desktop/Apps/MyLife/MyFast`
   - `figma` MCP server (authenticated user: `trey.shuldberg@gmail.com`)
   - `openaiDeveloperDocs` MCP server tools
 - Canonical inventory lives in `.claude/plugins.md`.
+
+## Standalone/Hub Parity (Critical)
+
+- Standalone `MyFast` is the canonical product source of truth.
+- The standalone `MyFast` app and MyLife hub module `modules/fast` must remain feature-identical and behavior-identical.
+- Do not ship module-only or standalone-only capabilities.
+- When a parity-impacting change is made, update both codebases and both instruction pairs (`AGENTS.md` + `CLAUDE.md`) in the same session.
+
+## Agent Teams
+
+- Agent team support is enabled via `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in MyLife `.claude/settings.json`.
+- Custom agent definitions are available from `/Users/trey/Desktop/Apps/.claude/agents/` and `/Users/trey/Desktop/Apps/MyLife/.claude/agents/`.
+- When spawning teams, assign file ownership zones from CLAUDE.md to prevent edit conflicts.
+- All teammates automatically load CLAUDE.md and AGENTS.md, so critical rules here are enforced team-wide.
+
+## Writing Style
+- Do not use em dashes in documents or writing.

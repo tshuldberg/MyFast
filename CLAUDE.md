@@ -126,6 +126,16 @@ Skip when: pure business logic, editing docs/config with no framework dependency
 | Tests | tester | `**/*.test.ts`, `**/*.test.tsx`, `**/*.spec.ts` |
 | Configs & docs | lead | `CLAUDE.md`, `timeline.md`, `turbo.json`, root configs |
 
+## Agent Teams Strategy
+
+When 2+ plans target this project with overlapping scope, use an Agent Team instead of parallel subagents. Custom agent definitions from `/Users/trey/Desktop/Apps/.claude/agents/` and `/Users/trey/Desktop/Apps/MyLife/.claude/agents/`:
+- `plan-executor` -- Execute plan phases with testing and verification
+- `test-writer` -- Write tests without modifying source code
+- `docs-agent` -- Update documentation
+- `reviewer` -- Read-only code review (uses Sonnet)
+
+Agents working in different File Ownership Zones can run in parallel without conflicts. Agents sharing a zone must coordinate via the team task list.
+
 ## Important Notes
 
 - All 6 preset protocols are defined as seed data — see `packages/shared/src/protocols/presets.ts`
@@ -133,3 +143,7 @@ Skip when: pure business logic, editing docs/config with no framework dependency
 - Streak = consecutive days where at least one fast hit its target duration
 - CSV export includes both fasts and weight entries
 - Design doc: `/Users/trey/Desktop/Apps/docs/plans/2026-02-22-myfast-design.md`
+
+
+## Writing Style
+- Do not use em dashes in documents or writing.
