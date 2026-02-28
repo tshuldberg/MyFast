@@ -3,7 +3,7 @@
 import { colors, spacing, typography, borderRadius } from '@myfast/ui';
 import type { StreakCache } from '@myfast/shared';
 import { getStreaks, averageDuration } from '@myfast/shared';
-import { useDatabase } from '@/lib/database';
+import { useDatabase } from '../../lib/database';
 
 function formatHours(seconds: number): string {
   const hours = seconds / 3600;

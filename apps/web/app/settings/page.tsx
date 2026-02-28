@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react';
 import { colors, spacing, typography, borderRadius } from '@myfast/ui';
 import { PRESET_PROTOCOLS, initDatabase, exportFastsCSV, exportWeightCSV } from '@myfast/shared';
 import type { Settings, Database } from '@myfast/shared';
-import { useDatabase } from '@/lib/database';
+import { useDatabase } from '../../lib/database';
 
 function loadSettings(db: Database): Settings {
   const get = (key: string, fallback: string): string => {

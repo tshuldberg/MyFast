@@ -14,8 +14,8 @@ import {
   refreshStreakCache,
 } from '@myfast/shared';
 import type { ActiveFast, TimerState } from '@myfast/shared';
-import { TimerRing } from '@/components/TimerRing';
-import { useDatabase } from '@/lib/database';
+import { TimerRing } from '../components/TimerRing';
+import { useDatabase } from '../lib/database';
 
 function getRingState(timer: TimerState): RingState {
   if (timer.state === 'idle') return 'idle';
