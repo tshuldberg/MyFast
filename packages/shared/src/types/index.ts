@@ -59,6 +59,79 @@ export interface Settings {
   theme: 'dark' | 'light';
 }
 
+/** Daily water intake row */
+export interface WaterIntake {
+  date: string; // ISO date YYYY-MM-DD
+  count: number;
+  target: number;
+  completed: boolean;
+  updatedAt: string;
+}
+
+/** Notification preferences stored in notifications_config */
+export interface NotificationPreferences {
+  fastStart: boolean;
+  progress25: boolean;
+  progress50: boolean;
+  progress75: boolean;
+  fastComplete: boolean;
+}
+
+export type GoalType =
+  | 'fasts_per_week'
+  | 'hours_per_week'
+  | 'hours_per_month'
+  | 'weight_milestone';
+
+export type GoalDirection = 'at_least' | 'at_most';
+
+/** User-defined goal */
+export interface Goal {
+  id: string;
+  type: GoalType;
+  targetValue: number;
+  period: 'weekly' | 'monthly' | 'milestone';
+  direction: GoalDirection;
+  label: string | null;
+  unit: string | null;
+  startDate: string; // ISO date YYYY-MM-DD
+  endDate: string | null; // ISO date YYYY-MM-DD
+  isActive: boolean;
+  createdAt: string;
+}
+
+/** Computed progress snapshot for a goal */
+export interface GoalProgress {
+  id: string;
+  goalId: string;
+  periodStart: string; // ISO date YYYY-MM-DD
+  periodEnd: string; // ISO date YYYY-MM-DD
+  currentValue: number;
+  targetValue: number;
+  completed: boolean;
+  createdAt: string;
+}
+
+/** Aggregate summary used for monthly and annual recaps */
+export interface SummaryStats {
+  totalFasts: number;
+  totalHours: number;
+  averageDurationHours: number;
+  longestFastHours: number;
+  adherenceRate: number;
+  currentStreak: number;
+}
+
+/** Configurable fasting zone card model */
+export interface FastingZone {
+  id: string;
+  name: string;
+  startHour: number;
+  endHour: number | null; // null = open-ended
+  title: string;
+  description: string;
+}
+
 /** Timer state computed from an active fast */
 export type FastState = 'idle' | 'fasting' | 'eating_window';
 

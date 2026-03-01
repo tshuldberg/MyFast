@@ -1,6 +1,15 @@
 import type { Database } from './database';
-import { ALL_TABLES } from './schema';
-import { seedProtocols, seedSettings } from './seed';
+import {
+  ALL_TABLES,
+  CREATE_GOALS,
+  CREATE_GOALS_INDEXES,
+  CREATE_GOAL_PROGRESS,
+  CREATE_GOAL_PROGRESS_INDEXES,
+  CREATE_NOTIFICATIONS_CONFIG,
+  CREATE_WATER_INTAKE,
+  CREATE_WATER_INTAKE_INDEXES,
+} from './schema';
+import { seedProtocols, seedSettings, seedNotificationConfig } from './seed';
 
 /** A single migration step */
 export interface Migration {
@@ -20,6 +29,28 @@ export const MIGRATIONS: Migration[] = [
       }
       seedProtocols(db);
       seedSettings(db);
+      seedNotificationConfig(db);
+    },
+  },
+  {
+    version: 2,
+    description: 'Feature set 1 schema - water intake, goals, goal progress, notifications config',
+    up: (db: Database) => {
+      db.run(CREATE_WATER_INTAKE);
+      for (const sql of CREATE_WATER_INTAKE_INDEXES) {
+        db.run(sql);
+      }
+      db.run(CREATE_GOALS);
+      for (const sql of CREATE_GOALS_INDEXES) {
+        db.run(sql);
+      }
+      db.run(CREATE_GOAL_PROGRESS);
+      for (const sql of CREATE_GOAL_PROGRESS_INDEXES) {
+        db.run(sql);
+      }
+      db.run(CREATE_NOTIFICATIONS_CONFIG);
+      seedSettings(db);
+      seedNotificationConfig(db);
     },
   },
 ];

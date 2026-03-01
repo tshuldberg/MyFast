@@ -23,17 +23,39 @@ export function seedProtocols(db: Database): void {
 export function seedSettings(db: Database): void {
   const defaults: [string, string][] = [
     ['defaultProtocol', '16:8'],
-    ['notifyFastComplete', 'false'],
+    ['notifyFastComplete', 'true'],
     ['notifyEatingWindowClosing', 'false'],
     ['weightTrackingEnabled', 'false'],
     ['weightUnit', 'lbs'],
     ['theme', 'dark'],
+    ['waterDailyTarget', '8'],
+    ['healthSyncEnabled', 'false'],
+    ['healthReadWeight', 'false'],
+    ['healthWriteFasts', 'false'],
   ];
 
   for (const [key, value] of defaults) {
     db.run(
       `INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`,
       [key, value],
+    );
+  }
+}
+
+/** Seed default notification preferences. Skips keys that already exist. */
+export function seedNotificationConfig(db: Database): void {
+  const defaults: [string, number][] = [
+    ['fastStart', 1],
+    ['progress25', 0],
+    ['progress50', 1],
+    ['progress75', 1],
+    ['fastComplete', 1],
+  ];
+
+  for (const [key, enabled] of defaults) {
+    db.run(
+      `INSERT OR IGNORE INTO notifications_config (key, enabled) VALUES (?, ?)`,
+      [key, enabled],
     );
   }
 }

@@ -5,3 +5,4 @@ export * from './timer/state-machine';
 export * from './protocols/presets';
 export * from './stats/index';
 export * from './export/index';
+export * from './zones/index';
