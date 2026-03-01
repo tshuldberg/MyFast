@@ -25,6 +25,25 @@
       "expo-router",
       "expo-sqlite",
       "expo-notifications",
+      "expo-sharing",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      [
+        "react-native-health",
+        {
+          "healthSharePermission": "Allow MyFast to read your health data for weight sync.",
+          "healthUpdatePermission": "Allow MyFast to write fasting sessions to Apple Health."
+        }
+      ],
+      "expo-health-connect",
       "./plugins/widget-plugin"
     ]
   }

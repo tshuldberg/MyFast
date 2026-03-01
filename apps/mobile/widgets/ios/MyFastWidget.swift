@@ -15,7 +15,8 @@ struct MyFastTimelineProvider: TimelineProvider {
                 startedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-3600 * 4)),
                 targetHours: 16,
                 protocol_: "16:8",
-                streakCount: 7
+                streakCount: 7,
+                lastEndedAt: nil
             )
         )
     }

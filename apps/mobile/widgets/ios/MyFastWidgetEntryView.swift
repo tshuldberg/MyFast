@@ -67,7 +67,7 @@ struct SmallWidgetView: View {
                         .foregroundColor(.widgetText)
                         .multilineTextAlignment(.center)
                 } else {
-                    Text("--:--")
+                    Text("Next")
                         .font(.system(size: 22, weight: .bold, design: .monospaced))
                         .foregroundColor(.widgetIdle)
                 }
@@ -75,13 +75,13 @@ struct SmallWidgetView: View {
             .frame(width: 90, height: 90)
 
             // Protocol label
-            Text(state.state == .fasting ? (state.protocol_ ?? "16:8") : "IDLE")
+            Text(state.state == .fasting ? (state.protocol_ ?? "16:8") : "NEXT FAST")
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(.widgetSecondary)
                 .textCase(.uppercase)
 
             // Progress %
-            Text(state.state == .fasting ? "\(Int(progressValue * 100))%" : "--")
+            Text(state.state == .fasting ? "\(Int(progressValue * 100))%" : formatTimeSince(state.endDateFromLastFast))
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(ringColor)
         }
@@ -128,7 +128,7 @@ struct MediumWidgetView: View {
                             .foregroundColor(.widgetText)
                             .multilineTextAlignment(.center)
                     } else {
-                        Text("--:--")
+                        Text("Next")
                             .font(.system(size: 24, weight: .bold, design: .monospaced))
                             .foregroundColor(.widgetIdle)
                     }
@@ -153,14 +153,14 @@ struct MediumWidgetView: View {
                     label: "Target",
                     value: state.state == .fasting
                         ? formatHours(state.targetHours ?? 16)
-                        : "--"
+                        : "Next fast"
                 )
 
                 DetailRow(
                     label: "Ends at",
                     value: state.state == .fasting
                         ? formatEndTime(state.endDate)
-                        : "--"
+                        : formatTimeSince(state.endDateFromLastFast)
                 )
 
                 DetailRow(
@@ -213,6 +213,26 @@ private func formatEndTime(_ date: Date?) -> String {
     return formatter.string(from: date)
 }
 
+private func formatTimeSince(_ date: Date?) -> String {
+    guard let date else { return "Start anytime" }
+
+    let seconds = max(0, Int(Date().timeIntervalSince(date)))
+    let hours = seconds / 3600
+    let minutes = (seconds % 3600) / 60
+
+    if hours >= 24 {
+        let days = hours / 24
+        return "\(days)d ago"
+    }
+    if hours > 0 {
+        return "\(hours)h ago"
+    }
+    if minutes > 0 {
+        return "\(minutes)m ago"
+    }
+    return "Just now"
+}
+
 // MARK: - Previews
 
 #Preview("Small", as: .systemSmall) {
@@ -225,12 +245,13 @@ private func formatEndTime(_ date: Date?) -> String {
             startedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-3600 * 8)),
             targetHours: 16,
             protocol_: "16:8",
-            streakCount: 14
+            streakCount: 14,
+            lastEndedAt: nil
         )
     )
     FastEntry(
         date: Date(),
-        fastState: FastState(state: .idle, startedAt: nil, targetHours: nil, protocol_: nil, streakCount: nil)
+        fastState: FastState(state: .idle, startedAt: nil, targetHours: nil, protocol_: nil, streakCount: nil, lastEndedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-3600 * 6)))
     )
 }
 
@@ -244,7 +265,8 @@ private func formatEndTime(_ date: Date?) -> String {
             startedAt: ISO8601DateFormatter().string(from: Date().addingTimeInterval(-3600 * 8)),
             targetHours: 16,
             protocol_: "16:8",
-            streakCount: 14
+            streakCount: 14,
+            lastEndedAt: nil
         )
     )
 }

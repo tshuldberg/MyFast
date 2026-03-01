@@ -10,6 +10,7 @@ interface WidgetState {
   targetHours: number | null;
   protocol: string | null;
   streakCount: number | null;
+  lastEndedAt: string | null;
 }
 
 const APP_GROUP = 'group.com.myfast.app';
@@ -26,6 +27,7 @@ export function updateWidgetState(params: {
   targetHours?: number | null;
   protocol?: string | null;
   streakCount?: number | null;
+  lastEndedAt?: string | null;
 }): void {
   if (Platform.OS !== 'ios') return;
 
@@ -35,6 +37,7 @@ export function updateWidgetState(params: {
     targetHours: params.targetHours ?? null,
     protocol: params.protocol ?? null,
     streakCount: params.streakCount ?? null,
+    lastEndedAt: params.lastEndedAt ?? null,
   };
 
   try {
@@ -55,8 +58,12 @@ export function updateWidgetState(params: {
 /**
  * Clear widget state (set to idle) and reload timelines.
  */
-export function clearWidgetState(streakCount?: number): void {
-  updateWidgetState({ state: 'idle', streakCount: streakCount ?? null });
+export function clearWidgetState(streakCount?: number, lastEndedAt?: string | null): void {
+  updateWidgetState({
+    state: 'idle',
+    streakCount: streakCount ?? null,
+    lastEndedAt: lastEndedAt ?? null,
+  });
 }
 
 /**

@@ -32,8 +32,27 @@ export function getNotificationPreferences(db: Database): NotificationPreference
 
   const next: NotificationPreferences = { ...DEFAULT_PREFERENCES };
   for (const row of rows) {
-    if (PREFERENCE_KEYS.includes(row.key as keyof NotificationPreferences)) {
-      (next as Record<string, boolean>)[row.key] = row.enabled === 1;
+    const key = row.key as keyof NotificationPreferences;
+    if (!PREFERENCE_KEYS.includes(key)) continue;
+
+    switch (key) {
+      case 'fastStart':
+        next.fastStart = row.enabled === 1;
+        break;
+      case 'progress25':
+        next.progress25 = row.enabled === 1;
+        break;
+      case 'progress50':
+        next.progress50 = row.enabled === 1;
+        break;
+      case 'progress75':
+        next.progress75 = row.enabled === 1;
+        break;
+      case 'fastComplete':
+        next.fastComplete = row.enabled === 1;
+        break;
+      default:
+        break;
     }
   }
 

@@ -72,6 +72,7 @@ describe('goals', () => {
     const goal = createGoal(db, {
       type: 'fasts_per_week',
       targetValue: 2,
+      startDate: '2026-01-01',
     });
 
     completeFast('2026-01-05T08:00:00.000Z', 16);

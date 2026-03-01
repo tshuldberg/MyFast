@@ -13,6 +13,7 @@ struct FastState: Codable {
     let targetHours: Double?
     let protocol_: String?       // "protocol" is reserved in Swift
     let streakCount: Int?
+    let lastEndedAt: String?
 
     enum CodingKeys: String, CodingKey {
         case state
@@ -20,6 +21,7 @@ struct FastState: Codable {
         case targetHours
         case protocol_ = "protocol"
         case streakCount
+        case lastEndedAt
     }
 
     /// Load from App Group UserDefaults
@@ -27,7 +29,7 @@ struct FastState: Codable {
         guard let defaults = UserDefaults(suiteName: "group.com.myfast.app"),
               let data = defaults.data(forKey: "widgetState"),
               let decoded = try? JSONDecoder().decode(FastState.self, from: data) else {
-            return FastState(state: .idle, startedAt: nil, targetHours: nil, protocol_: nil, streakCount: nil)
+            return FastState(state: .idle, startedAt: nil, targetHours: nil, protocol_: nil, streakCount: nil, lastEndedAt: nil)
         }
         return decoded
     }
@@ -41,6 +43,16 @@ struct FastState: Codable {
         // Retry without fractional seconds
         formatter.formatOptions = [.withInternetDateTime]
         return formatter.date(from: startedAt)
+    }
+
+    /// Parse ISO 8601 end date into a Date
+    var endDateFromLastFast: Date? {
+        guard let lastEndedAt else { return nil }
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: lastEndedAt) { return date }
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: lastEndedAt)
     }
 
     /// Target duration in seconds
