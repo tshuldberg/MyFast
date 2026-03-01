@@ -1,4 +1,4 @@
-import type { Protocol } from '../types/index.js';
+import type { Protocol } from '../types/index';
 
 /** The 6 preset fasting protocols */
 export const PRESET_PROTOCOLS: Protocol[] = [

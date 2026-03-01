@@ -1,4 +1,4 @@
-import type { Database } from '../db/database.js';
+import type { Database } from '../db/database';
 
 /** Escape a CSV field: wrap in quotes if it contains comma, quote, or newline */
 function escapeField(value: string | number | null | undefined): string {

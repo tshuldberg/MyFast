@@ -1,15 +1,15 @@
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { createTestDatabase } from './db/test-helpers.js';
+import { createTestDatabase } from './db/test-helpers';
 import {
   startFast,
   endFast,
   getActiveFast,
   listFasts,
   countFasts,
-} from './db/fasts.js';
-import { computeTimerState, formatDuration } from './timer/state-machine.js';
-import { computeStreaks, refreshStreakCache } from './stats/streaks.js';
-import { averageDuration, adherenceRate } from './stats/aggregation.js';
+} from './db/fasts';
+import { computeTimerState, formatDuration } from './timer/state-machine';
+import { computeStreaks, refreshStreakCache } from './stats/streaks';
+import { averageDuration, adherenceRate } from './stats/aggregation';
 
 afterEach(() => {
   vi.useRealTimers();

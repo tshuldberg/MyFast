@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { Database } from '../db/database.js';
-import { createTestDatabase } from '../db/test-helpers.js';
-import { startFast, endFast } from '../db/fasts.js';
-import { computeStreaks, refreshStreakCache, getStreaks } from './streaks.js';
+import type { Database } from '../db/database';
+import { createTestDatabase } from '../db/test-helpers';
+import { startFast, endFast } from '../db/fasts';
+import { computeStreaks, refreshStreakCache, getStreaks } from './streaks';
 
 let db: Database;
 

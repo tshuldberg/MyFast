@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import type { Database } from './database.js';
-import { createTestDatabase } from './test-helpers.js';
+import type { Database } from './database';
+import { createTestDatabase } from './test-helpers';
 import {
   startFast,
   endFast,
@@ -9,7 +9,7 @@ import {
   listFasts,
   countFasts,
   deleteFast,
-} from './fasts.js';
+} from './fasts';
 
 let db: Database;
 

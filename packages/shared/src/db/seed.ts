@@ -1,4 +1,4 @@
-import type { Database } from './database.js';
+import type { Database } from './database';
 
 /** Seed the 6 preset fasting protocols. Skips rows that already exist. */
 export function seedProtocols(db: Database): void {

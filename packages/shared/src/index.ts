@@ -1,7 +1,7 @@
 // @myfast/shared — Types, database, timer logic, protocols, stats, export
-export * from './types/index.js';
-export * from './db/index.js';
-export * from './timer/state-machine.js';
-export * from './protocols/presets.js';
-export * from './stats/index.js';
-export * from './export/index.js';
+export * from './types/index';
+export * from './db/index';
+export * from './timer/state-machine';
+export * from './protocols/presets';
+export * from './stats/index';
+export * from './export/index';

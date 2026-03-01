@@ -1,4 +1,4 @@
-import type { ActiveFast, TimerState } from '../types/index.js';
+import type { ActiveFast, TimerState } from '../types/index';
 
 /**
  * Compute the current timer state from an active fast and the current time.

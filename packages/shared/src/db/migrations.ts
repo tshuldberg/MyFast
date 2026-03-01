@@ -1,6 +1,6 @@
-import type { Database } from './database.js';
-import { ALL_TABLES } from './schema.js';
-import { seedProtocols, seedSettings } from './seed.js';
+import type { Database } from './database';
+import { ALL_TABLES } from './schema';
+import { seedProtocols, seedSettings } from './seed';
 
 /** A single migration step */
 export interface Migration {

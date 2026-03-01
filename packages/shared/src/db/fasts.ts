@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
-import type { Database } from './database.js';
-import type { ActiveFast, Fast } from '../types/index.js';
+import type { Database } from './database';
+import type { ActiveFast, Fast } from '../types/index';
 
 /** Row shape from the fasts table */
 interface FastRow {

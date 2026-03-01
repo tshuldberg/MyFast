@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { computeTimerState, formatDuration } from './state-machine.js';
-import type { ActiveFast } from '../types/index.js';
+import { computeTimerState, formatDuration } from './state-machine';
+import type { ActiveFast } from '../types/index';
 
 // ---------------------------------------------------------------------------
 // Helpers

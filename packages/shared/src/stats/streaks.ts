@@ -1,5 +1,5 @@
-import type { Database } from '../db/database.js';
-import type { StreakCache } from '../types/index.js';
+import type { Database } from '../db/database';
+import type { StreakCache } from '../types/index';
 
 /**
  * Compute streak data from the fasts table.

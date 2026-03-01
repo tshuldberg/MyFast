@@ -1,4 +1,4 @@
-import type { Database } from '../db/database.js';
+import type { Database } from '../db/database';
 
 /** Average fasting duration in seconds across all completed fasts */
 export function averageDuration(db: Database): number {

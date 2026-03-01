@@ -1,9 +1,9 @@
-export { computeStreaks, refreshStreakCache, getStreaks } from './streaks.js';
+export { computeStreaks, refreshStreakCache, getStreaks } from './streaks';
 export {
   averageDuration,
   adherenceRate,
   weeklyRollup,
   monthlyRollup,
   durationTrend,
-} from './aggregation.js';
-export type { DaySummary, MonthDay, DurationPoint } from './aggregation.js';
+} from './aggregation';
+export type { DaySummary, MonthDay, DurationPoint } from './aggregation';

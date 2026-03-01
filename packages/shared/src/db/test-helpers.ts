@@ -3,8 +3,8 @@
  * implementing the Database interface from database.ts.
  */
 import BetterSqlite3 from 'better-sqlite3';
-import type { Database } from './database.js';
-import { initDatabase } from './migrations.js';
+import type { Database } from './database';
+import { initDatabase } from './migrations';
 
 /** Create an in-memory Database, with schema already migrated. */
 export function createTestDatabase(): Database {

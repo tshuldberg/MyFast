@@ -1,1 +1,1 @@
-export { exportFastsCSV, exportWeightCSV } from './csv.js';
+export { exportFastsCSV, exportWeightCSV } from './csv';

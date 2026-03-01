@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from 'react';
-import { theme as darkTheme, spacing, borderRadius, typography } from './tokens.js';
+import { theme as darkTheme, spacing, borderRadius, typography } from './tokens';
 
 /** Color values use string to allow both dark and light hex values */
 export interface ThemeRingColors {
