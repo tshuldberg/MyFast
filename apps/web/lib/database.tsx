@@ -41,18 +41,31 @@ function saveToStorage(sqlDb: SqlJsDatabase): void {
 
 /** Create a Database adapter wrapping sql.js */
 function createAdapter(sqlDb: SqlJsDatabase): Database {
+  let inTransaction = false;
+
   function persist() {
-    saveToStorage(sqlDb);
+    if (!inTransaction) {
+      saveToStorage(sqlDb);
+    }
   }
 
   return {
     run(sql: string, params?: unknown[]): void {
-      sqlDb.run(sql, params as (string | number | null | Uint8Array)[]);
+      if (params && params.length > 0) {
+        const stmt = sqlDb.prepare(sql);
+        stmt.bind(params as (string | number | null | Uint8Array)[]);
+        stmt.step();
+        stmt.free();
+      } else {
+        sqlDb.run(sql);
+      }
       persist();
     },
     get<T>(sql: string, params?: unknown[]): T | undefined {
       const stmt = sqlDb.prepare(sql);
-      stmt.bind(params as (string | number | null | Uint8Array)[]);
+      if (params && params.length > 0) {
+        stmt.bind(params as (string | number | null | Uint8Array)[]);
+      }
       if (!stmt.step()) {
         stmt.free();
         return undefined;
@@ -64,7 +77,9 @@ function createAdapter(sqlDb: SqlJsDatabase): Database {
     all<T>(sql: string, params?: unknown[]): T[] {
       const results: T[] = [];
       const stmt = sqlDb.prepare(sql);
-      stmt.bind(params as (string | number | null | Uint8Array)[]);
+      if (params && params.length > 0) {
+        stmt.bind(params as (string | number | null | Uint8Array)[]);
+      }
       while (stmt.step()) {
         results.push(stmt.getAsObject() as T);
       }
@@ -72,13 +87,16 @@ function createAdapter(sqlDb: SqlJsDatabase): Database {
       return results;
     },
     transaction(fn: () => void): void {
+      inTransaction = true;
       sqlDb.run('BEGIN TRANSACTION');
       try {
         fn();
         sqlDb.run('COMMIT');
       } catch (e) {
-        sqlDb.run('ROLLBACK');
+        try { sqlDb.run('ROLLBACK'); } catch { /* already rolled back */ }
         throw e;
+      } finally {
+        inTransaction = false;
       }
       persist();
     },
@@ -95,13 +113,33 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
 
     async function init() {
       const SQL = await initSqlJs({
-        locateFile: (file: string) => `https://sql.js.org/dist/${file}`,
+        locateFile: () => '/sql-wasm.wasm',
       });
 
+      let adapter: Database;
       const saved = loadFromStorage();
-      const sqlDb = saved ? new SQL.Database(saved) : new SQL.Database();
-      const adapter = createAdapter(sqlDb);
-      initDatabase(adapter);
+      if (saved) {
+        try {
+          const sqlDb = new SQL.Database(saved);
+          adapter = createAdapter(sqlDb);
+          initDatabase(adapter);
+          // Validate: test a write to catch corrupted schema
+          adapter.run(
+            `INSERT OR REPLACE INTO streak_cache (key, value, updated_at) VALUES ('_healthcheck', 0, datetime('now'))`,
+          );
+          adapter.run(`DELETE FROM streak_cache WHERE key = '_healthcheck'`);
+        } catch {
+          // Corrupted localStorage — start fresh
+          localStorage.removeItem(STORAGE_KEY);
+          const sqlDb = new SQL.Database();
+          adapter = createAdapter(sqlDb);
+          initDatabase(adapter);
+        }
+      } else {
+        const sqlDb = new SQL.Database();
+        adapter = createAdapter(sqlDb);
+        initDatabase(adapter);
+      }
 
       if (mounted) {
         setDb(adapter);

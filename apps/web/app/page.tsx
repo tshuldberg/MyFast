@@ -141,6 +141,7 @@ export default function TimerPage() {
     endFast(db);
     refreshStreakCache(db);
     setStreakCount(getStreaks(db).currentStreak);
+    setTimer(computeTimerState(null, new Date()));
     setActiveFast(null);
     reloadDailyState();
   }, [db, reloadDailyState]);
@@ -185,21 +186,21 @@ export default function TimerPage() {
       </div>
 
       <div style={styles.infoSection}>
-        {timer.state === 'idle' ? (
+        {timer.state === 'idle' || !activeFast ? (
           <>
             <InfoRow label="Protocol" value={defaultProtocol.id} />
             <InfoRow label="Streak" value={streakCount > 0 ? `${streakCount} day${streakCount !== 1 ? 's' : ''}` : '--'} />
           </>
         ) : timer.targetReached ? (
           <>
-            <InfoRow label="Protocol" value={activeFast!.protocol} />
+            <InfoRow label="Protocol" value={activeFast.protocol} />
             <InfoRow
               label="Over target by"
-              value={formatDuration(timer.elapsed - activeFast!.targetHours * 3600)}
+              value={formatDuration(timer.elapsed - activeFast.targetHours * 3600)}
             />
             <InfoRow
               label="Started"
-              value={new Date(activeFast!.startedAt).toLocaleTimeString([], {
+              value={new Date(activeFast.startedAt).toLocaleTimeString([], {
                 hour: 'numeric',
                 minute: '2-digit',
               })}
@@ -207,9 +208,9 @@ export default function TimerPage() {
           </>
         ) : (
           <>
-            <InfoRow label="Target" value={formatDuration(activeFast!.targetHours * 3600)} />
+            <InfoRow label="Target" value={formatDuration(activeFast.targetHours * 3600)} />
             <InfoRow label="Remaining" value={formatDuration(timer.remaining)} />
-            <InfoRow label="Ends at" value={formatEndTime(activeFast!.startedAt, activeFast!.targetHours)} />
+            <InfoRow label="Ends at" value={formatEndTime(activeFast.startedAt, activeFast.targetHours)} />
           </>
         )}
       </div>
