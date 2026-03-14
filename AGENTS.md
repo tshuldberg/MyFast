@@ -23,18 +23,12 @@ Project-specific agent instructions for `/Users/trey/Desktop/Apps/MyLife/MyFast`
 ## Skills Availability
 
 - Skills are sourced from the global Codex skills directory: `/Users/trey/.codex/skills`.
-- Verified on 2026-02-24: 67 skills with `SKILL.md` are available (including `.system/*` skills).
-- Verify current availability with:
-  - `find /Users/trey/.codex/skills -maxdepth 3 -name 'SKILL.md' | wc -l`
-  - `find /Users/trey/.codex/skills -maxdepth 3 -name 'SKILL.md'`
 - Do not assume `.claude/skills` exists in this repo unless explicitly added later.
+- Check the shared skills directory directly if availability needs re-verification.
 
 ## Plugins / MCP Availability
 
-- Confirmed working in this workspace on 2026-02-24:
-  - `figma` MCP server (authenticated user: `trey.shuldberg@gmail.com`)
-  - `openaiDeveloperDocs` MCP server tools
-- Canonical inventory lives in `.claude/plugins.md`.
+- See `.claude/plugins.md` for the current verified inventory and re-verification steps.
 
 ## Standalone/Hub Parity (Critical)
 
